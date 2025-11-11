@@ -1,0 +1,70 @@
+# SongBloom Next-Gen X2 Configuration
+# Customize these settings for your setup
+
+# Model Settings
+model:
+  name: "songbloom_full_150s"  # or "songbloom_full_150s_dpo"
+  cache_dir: "./cache"
+  dtype: "bfloat16"  # float32, float16, bfloat16
+  quantization: null  # null, "int8", "int4"
+  optimization_level: "standard"  # minimal, standard, aggressive
+
+# Generation Settings
+generation:
+  cfg_coef: 1.5  # Classifier-free guidance (0.0-5.0)
+  steps: 50  # Diffusion steps (10-100)
+  top_k: 200  # Top-k sampling (50-500)
+  num_samples: 1  # Number of samples to generate
+  max_duration: null  # Override max duration (seconds)
+
+# Web Interface Settings
+webui:
+  server_name: "127.0.0.1"  # "0.0.0.0" for external access
+  server_port: 7860
+  share: false  # Create public Gradio link
+  auto_load_model: true  # Load model on startup
+  theme: "soft"  # soft, default, glass
+
+# API Server Settings
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: false  # Auto-reload for development
+  workers: 1  # Number of worker processes
+  cors_origins: ["*"]  # CORS allowed origins
+
+# Performance Settings
+performance:
+  enable_flash_attn: true  # Use Flash Attention if available
+  enable_tf32: true  # Use TF32 on Ampere GPUs
+  enable_cudnn_benchmark: true  # cuDNN auto-tuning
+  torch_compile: false  # Use torch.compile (PyTorch 2.0+)
+  gradient_checkpointing: false  # Memory-efficient training
+
+# Output Settings
+output:
+  format: "flac"  # flac, wav, mp3
+  sample_rate: 48000
+  output_dir: "./output"
+  gradio_output_dir: "./gradio_outputs"
+  api_output_dir: "./api_outputs"
+
+# GPU Settings
+gpu:
+  device_id: 0  # GPU device ID (null for auto)
+  memory_fraction: 0.9  # Max GPU memory fraction
+  allow_growth: true  # Allow dynamic memory allocation
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: null  # Log file path (null for console only)
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Advanced
+advanced:
+  enable_profiling: false  # Enable performance profiling
+  profile_output: "./profile_results"
+  save_intermediate: false  # Save intermediate generation steps
+  deterministic: false  # Use deterministic algorithms
+  seed: null  # Random seed (null for random)
