@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  songbloom-gui:
+    build: .
+    container_name: songbloom-nextgen-gui
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - DISABLE_FLASH_ATTN=0
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./cache:/app/cache
+      - ./gradio_outputs:/app/gradio_outputs
+      - ./example:/app/example
+    command: ["app.py", "--server-name", "0.0.0.0", "--server-port", "7860", "--auto-load-model"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  songbloom-api:
+    build: .
+    container_name: songbloom-nextgen-api
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - DISABLE_FLASH_ATTN=0
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./cache:/app/cache
+      - ./api_outputs:/app/api_outputs
+      - ./api_prompts:/app/api_prompts
+    command: ["api_server.py", "--host", "0.0.0.0", "--port", "8000"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

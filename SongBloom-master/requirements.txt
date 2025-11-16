@@ -15,3 +15,16 @@ spacy==3.7.4
 num2words==0.5.13
 descript-audio-codec==1.0.0
 vector_quantize_pytorch==1.14.8
+
+# Next-Gen X2 Enhancements
+gradio>=4.0.0
+bitsandbytes>=0.41.0
+accelerate>=0.24.0
+flash-attn>=2.6.0
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Next-Gen X3 Voice Cloning & Personas
+speechbrain>=0.5.16
+torchaudio-augmentations>=0.2.4

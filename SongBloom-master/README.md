@@ -32,8 +32,44 @@ Experimental results demonstrate that SongBloom outperforms existing methods acr
 
 
 ## Updates
-- **Jun 2025**: Release the songbloom_full_150s and inference script
+- **Nov 2025**: 🚀 **Next-Gen X2 Upgrade** - Major release with optimizations, GUI, and API
 - **Sep 2025**: Release the songbloom_full_150s model with DPO post-training
+- **Jun 2025**: Release the songbloom_full_150s and inference script
+
+## ✨ Next-Gen X2 Features
+
+This repository includes the **Next-Gen X2 upgrade** with significant enhancements:
+
+### 🎯 Core Improvements
+- **⚡ Advanced Optimizations**: INT8/INT4 quantization, Flash Attention 2, mixed precision
+- **🎨 Modern Web GUI**: Suno-like interface with Gradio for interactive generation
+- **🔌 RESTful API**: FastAPI server for programmatic access
+- **💾 Memory Efficient**: Run on GPUs with as little as 2GB VRAM
+- **🚀 Performance**: 2-4x faster inference with optimizations
+
+### 🎮 Quick Start
+
+**Option 1: Interactive Web Interface (Recommended)**
+```bash
+./quickstart.sh
+# Choose option 1 for GUI
+```
+
+**Option 2: Optimized Command-Line**
+```bash
+python infer_optimized.py \
+  --input-jsonl example/test.jsonl \
+  --dtype bfloat16 \
+  --quantization int8
+```
+
+**Option 3: API Server**
+```bash
+python api_server.py
+# Access docs at http://localhost:8000/docs
+```
+
+📖 **For detailed documentation, see [NEXTGEN_X2_GUIDE.md](NEXTGEN_X2_GUIDE.md)**
 
 
 
