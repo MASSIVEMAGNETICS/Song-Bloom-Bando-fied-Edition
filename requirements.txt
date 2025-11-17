@@ -1,9 +1,9 @@
 # Streamlit deployment requirements
 streamlit>=1.28.0
 
-# Core PyTorch and ML dependencies
-torch==2.2.0
-torchaudio==2.2.0
+# Core PyTorch and ML dependencies - Updated for Python 3.10+ compatibility
+torch>=2.0.0
+torchaudio>=2.0.0
 transformers==4.44.1
 einops==0.8.0
 accelerate>=0.24.0
@@ -20,8 +20,14 @@ nltk==3.8.1
 omegaconf==2.2.0
 spacy==3.7.4
 num2words==0.5.13
-descript-audio-codec==1.0.0
+
+# Audio codec - Skip for now to resolve protobuf conflict
+# descript-audio-codec will be loaded dynamically if available
+# descript-audio-codec==1.0.0
 vector_quantize_pytorch==1.14.8
+
+# Explicitly set protobuf version compatible with streamlit
+protobuf>=3.20,<5
 
 # Web frameworks (Gradio for compatibility)
 gradio>=4.0.0
