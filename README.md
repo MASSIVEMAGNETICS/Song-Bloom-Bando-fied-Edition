@@ -39,24 +39,33 @@ This repository features the **revolutionary Next-Gen X3 upgrade** - the most ad
 
 ### 🎯 Quick Start
 
-Navigate to the main directory:
+**Option 1: Streamlit Cloud Deployment (NEW!)**
+```bash
+# The app is ready for Streamlit Cloud deployment!
+# Just deploy via: https://share.streamlit.io/
+# Main file: streamlit_app.py
+# Or run locally:
+streamlit run streamlit_app.py
+```
+
+Navigate to the main directory for other options:
 ```bash
 cd SongBloom-master
 ```
 
-**Option 1: Next-Gen X3 Interface (NEW - Recommended)**
+**Option 2: Next-Gen X3 Interface (Recommended for Local)**
 ```bash
 python app_nextgen_x3.py --auto-load-model
 # Features: Voice personas, quality presets, professional generation
 ```
 
-**Option 2: Web Interface**
+**Option 3: Web Interface (Gradio)**
 ```bash
 ./quickstart.sh
 # Choose option 1 for the Suno-like GUI
 ```
 
-**Option 3: Optimized Command-Line**
+**Option 4: Optimized Command-Line**
 ```bash
 python infer_optimized.py \
   --input-jsonl example/test.jsonl \
@@ -65,13 +74,13 @@ python infer_optimized.py \
   --output-dir ./output
 ```
 
-**Option 4: API Server**
+**Option 5: API Server**
 ```bash
 python api_server.py
 # Visit http://localhost:8000/docs for interactive API documentation
 ```
 
-**Option 5: Docker**
+**Option 6: Docker**
 ```bash
 docker-compose up songbloom-gui
 # Access at http://localhost:7860
