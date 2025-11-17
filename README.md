@@ -39,24 +39,49 @@ This repository features the **revolutionary Next-Gen X3 upgrade** - the most ad
 
 ### 🎯 Quick Start
 
-Navigate to the main directory:
+**🚀 ONE-CLICK LAUNCHER (NEW - Easiest Way!)**
+```bash
+# Linux/Mac
+./launch.sh
+
+# Windows
+launch.bat
+```
+**Features:**
+- ✅ Automatic environment setup (Conda or venv)
+- ✅ Dependency installation
+- ✅ Choose Streamlit, Gradio, or Next-Gen X3
+- ✅ Interactive menu
+- ✅ No technical knowledge required!
+
+---
+
+**Option 1: Streamlit Cloud Deployment**
+```bash
+# Deploy via: https://share.streamlit.io/
+# Main file: streamlit_app.py
+# Or run locally:
+streamlit run streamlit_app.py
+```
+
+**Option 2: Manual Launch - Navigate to SongBloom-master:**
 ```bash
 cd SongBloom-master
 ```
 
-**Option 1: Next-Gen X3 Interface (NEW - Recommended)**
+**Option 3: Next-Gen X3 Interface (Voice Personas)**
 ```bash
 python app_nextgen_x3.py --auto-load-model
 # Features: Voice personas, quality presets, professional generation
 ```
 
-**Option 2: Web Interface**
+**Option 4: Web Interface (Gradio)**
 ```bash
 ./quickstart.sh
 # Choose option 1 for the Suno-like GUI
 ```
 
-**Option 3: Optimized Command-Line**
+**Option 5: Optimized Command-Line**
 ```bash
 python infer_optimized.py \
   --input-jsonl example/test.jsonl \
@@ -65,13 +90,13 @@ python infer_optimized.py \
   --output-dir ./output
 ```
 
-**Option 4: API Server**
+**Option 6: API Server**
 ```bash
 python api_server.py
 # Visit http://localhost:8000/docs for interactive API documentation
 ```
 
-**Option 5: Docker**
+**Option 6: Docker**
 ```bash
 docker-compose up songbloom-gui
 # Access at http://localhost:7860
