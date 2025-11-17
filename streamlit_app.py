@@ -214,6 +214,10 @@ with st.sidebar:
     - 🎨 Style transfer from audio
     - ⚡ Optimized inference
     - 🎯 High-quality output
+    
+    **⚠️ Note:** This app requires GPU resources to run. Streamlit Cloud's free tier 
+    may not have sufficient resources. Consider deploying on GPU-enabled infrastructure 
+    or running locally with a CUDA-capable GPU.
     """)
 
 # Main content area

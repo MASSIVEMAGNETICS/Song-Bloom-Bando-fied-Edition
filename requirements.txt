@@ -1,7 +1,14 @@
 # Streamlit deployment requirements
 streamlit>=1.28.0
 
-# SongBloom dependencies from SongBloom-master/requirements.txt
+# Core PyTorch and ML dependencies
+torch==2.2.0
+torchaudio==2.2.0
+transformers==4.44.1
+einops==0.8.0
+accelerate>=0.24.0
+
+# SongBloom core dependencies
 huggingface-hub==0.24.6
 jieba-fast==0.53
 pypinyin==0.51.0
@@ -11,24 +18,22 @@ g2p-en==2.1.0
 lightning==2.2.1
 nltk==3.8.1
 omegaconf==2.2.0
-torch==2.2.0
-torchaudio==2.2.0
-transformers==4.44.1
-einops==0.8.0
 spacy==3.7.4
 num2words==0.5.13
 descript-audio-codec==1.0.0
 vector_quantize_pytorch==1.14.8
 
-# Next-Gen X2 Enhancements
+# Web frameworks (Gradio for compatibility)
 gradio>=4.0.0
-bitsandbytes>=0.41.0
-accelerate>=0.24.0
-flash-attn>=2.6.0
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
 
-# Next-Gen X3 Voice Cloning & Personas
-speechbrain>=0.5.16
-torchaudio-augmentations>=0.2.4
+# Optional optimizations (may not work on all platforms)
+# Uncomment if deploying on GPU-enabled infrastructure
+# bitsandbytes>=0.41.0
+# flash-attn>=2.6.0
+
+# Voice features (optional)
+# speechbrain>=0.5.16
+# torchaudio-augmentations>=0.2.4
