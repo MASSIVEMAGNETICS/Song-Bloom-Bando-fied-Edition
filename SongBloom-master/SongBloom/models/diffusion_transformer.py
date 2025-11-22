@@ -55,8 +55,10 @@ class RotaryEmbedding(nn.Module):
         if seq_len is None:
             seq_len = x.shape[1]
         # Handle cases where inference seq_len > init max_seq_len
+        # Explicit slicing to prevent out-of-bounds access during dynamic sequence lengths
         if seq_len > self.cos.shape[0]:
-            return self.cos[:self.cos.shape[0], :].to(x.device), self.sin[:self.sin.shape[0], :].to(x.device)
+            # Return full buffer if requested length exceeds pre-computed embeddings
+            return self.cos.to(x.device), self.sin.to(x.device)
         return self.cos[:seq_len, :].to(x.device), self.sin[:seq_len, :].to(x.device)
 
 def rotate_half(x):
@@ -151,9 +153,10 @@ class DiTBlock(nn.Module):
     def forward(self, x, t_emb, context, rope_cos, rope_sin):
         # x: [B, L, D], t_emb: [B, D], context: [B, S, D] (Text embeddings)
         
-        # Calculate modulation parameters from timestep
-        # shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp
-        shift_msa, scale_msa, gate_msa, shift_cross, scale_cross, gate_cross = self.adaLN_modulation(t_emb).chunk(6, dim=1)
+        # Calculate modulation parameters from timestep (computed once and reused)
+        # shift_msa, scale_msa, gate_msa, shift_cross, scale_cross, gate_cross
+        modulation = self.adaLN_modulation(t_emb)
+        shift_msa, scale_msa, gate_msa, shift_cross, scale_cross, gate_cross = modulation.chunk(6, dim=1)
         
         # -------------------------------------------------------
         # 1. Self-Attention
@@ -208,8 +211,8 @@ class DiTBlock(nn.Module):
         # -------------------------------------------------------
         # 3. MLP (SwiGLU)
         # -------------------------------------------------------
-        # Reuse modulation params for simplicity in this example or split chunks differently
-        shift_mlp, scale_mlp, gate_mlp = self.adaLN_modulation(t_emb).chunk(6, dim=1)[3:]
+        # Extract MLP modulation parameters from the already computed modulation
+        shift_mlp, scale_mlp, gate_mlp = modulation.chunk(6, dim=1)[3:]
         
         x_norm = self.norm2(x)
         x_norm = x_norm * (1 + scale_mlp.unsqueeze(1)) + shift_mlp.unsqueeze(1)

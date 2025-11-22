@@ -11,7 +11,7 @@ import numpy as np
 from typing import List, Dict, Any, Optional, Union
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
@@ -192,7 +192,6 @@ class FractalMemory:
     
     def _get_week_id(self, date_str: str) -> str:
         """Get week identifier from date (e.g., "2025-W03")"""
-        from datetime import datetime
         date = datetime.strptime(date_str, "%Y-%m-%d")
         return f"{date.year}-W{date.isocalendar()[1]:02d}"
     

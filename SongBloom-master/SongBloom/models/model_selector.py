@@ -163,7 +163,10 @@ class ModelSelector:
 
 # Initialize model registrations
 def initialize_model_registry():
-    """Initialize the model registry with available models"""
+    """
+    Initialize the model registry with available models.
+    Call this function explicitly to avoid circular imports and enable easier testing.
+    """
     
     # Import models dynamically to avoid circular imports
     try:
@@ -203,5 +206,12 @@ def initialize_model_registry():
         logger.warning(f"Could not register SongBloom_Sampler: {e}")
 
 
-# Auto-initialize on import
-initialize_model_registry()
+# Auto-initialize on import for convenience
+# To avoid issues with circular imports or testing, you can disable this by
+# setting SONGBLOOM_SKIP_AUTO_INIT environment variable
+import os
+if not os.environ.get('SONGBLOOM_SKIP_AUTO_INIT'):
+    try:
+        initialize_model_registry()
+    except Exception as e:
+        logger.warning(f"Auto-initialization failed: {e}. Call initialize_model_registry() manually.")
