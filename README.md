@@ -13,11 +13,20 @@
 
 </div>
 
-## 🚀 Next-Gen X3 - 10 Years Ahead!
+## 🚀 Next-Gen X3 - Cognitive Architecture Edition
 
-This repository features the **revolutionary Next-Gen X3 upgrade** - the most advanced AI music generation system available:
+This repository features the **revolutionary Next-Gen X3 upgrade** with Cognitive Architecture - moving beyond passive RAG to holographic, hyperdimensional computing:
 
-### 🎤 X3 Revolutionary Features (NEW!)
+### 🧠 Cognitive Architecture (NEW!)
+
+- **🔮 Level 2: Holographic Computing** - Hyperdimensional vectors with concept algebra
+- **📦 Fractal Memory System** - Recursive compression (Day → Week → Month → Year)
+- **🎯 Intelligent Model Selection** - Task-aware model selection with cognitive levels
+- **🧮 Concept Algebra** - Mathematical operations on abstract concepts (Vector(Apple) × Vector(Red) + Vector(Gravity) ≈ Vector(Newton))
+- **💾 Distributed Memory** - Holographic properties: cut vector in half, memory persists at lower resolution
+- **🔬 Future-Proof Architecture** - Clear path to Level 3 (Active Inference) and Level 4 (Neuromorphic)
+
+### 🎤 X3 Revolutionary Features
 
 - **🎙️ Voice Cloning & Personas** - Create custom voice personas like Suno, but with real voice cloning
 - **💾 Save/Load Models** - Each persona remembers preferences and voice characteristics
@@ -56,32 +65,45 @@ launch.bat
 
 ---
 
-**Option 1: Streamlit Cloud Deployment**
+**Option 1: Cognitive Architecture Demo (NEW!)**
+```bash
+# Run the cognitive architecture example
+python example_cognitive_architecture.py
+
+# Demonstrates:
+# - Fractal Memory with recursive compression
+# - Concept Algebra with hyperdimensional vectors
+# - Intelligent model selection
+```
+
+**Option 2: Streamlit Cloud Deployment**
 ```bash
 # Deploy via: https://share.streamlit.io/
 # Main file: streamlit_app.py
 # Or run locally:
 streamlit run streamlit_app.py
+
+# Features cognitive architecture with model selection!
 ```
 
-**Option 2: Manual Launch - Navigate to SongBloom-master:**
+**Option 3: Manual Launch - Navigate to SongBloom-master:**
 ```bash
 cd SongBloom-master
 ```
 
-**Option 3: Next-Gen X3 Interface (Voice Personas)**
+**Option 4: Next-Gen X3 Interface (Voice Personas)**
 ```bash
 python app_nextgen_x3.py --auto-load-model
 # Features: Voice personas, quality presets, professional generation
 ```
 
-**Option 4: Web Interface (Gradio)**
+**Option 5: Web Interface (Gradio)**
 ```bash
 ./quickstart.sh
 # Choose option 1 for the Suno-like GUI
 ```
 
-**Option 5: Optimized Command-Line**
+**Option 6: Optimized Command-Line**
 ```bash
 python infer_optimized.py \
   --input-jsonl example/test.jsonl \
@@ -101,6 +123,43 @@ python api_server.py
 docker-compose up songbloom-gui
 # Access at http://localhost:7860
 ```
+
+### 🧠 Cognitive Architecture Quick Start (NEW!)
+
+1. **Run the Example**:
+   ```bash
+   python example_cognitive_architecture.py
+   # Demonstrates fractal memory, concept algebra, and model selection
+   ```
+
+2. **Use Fractal Memory**:
+   ```python
+   from SongBloom.models.fractal_memory import FractalMemory
+   
+   memory = FractalMemory(hd_dimension=10000)
+   memory.store_daily_memory("2025-01-15", "Generated funky jazz tune")
+   results = memory.query_memory("jazz music", top_k=5)
+   ```
+
+3. **Concept Algebra**:
+   ```python
+   from SongBloom.models.fractal_memory import HyperdimensionalVector
+   
+   hdv = HyperdimensionalVector(dimension=10000)
+   concepts = {'Apple': hdv.create_random_vector(), ...}
+   result = hdv.concept_algebra(concepts, "Apple * Red + Gravity")
+   ```
+
+4. **Model Selection**:
+   ```python
+   from SongBloom.models.model_selector import ModelSelector, CognitiveLevel
+   
+   selector = ModelSelector()
+   model = selector.select_model(
+       task="music_generation",
+       cognitive_level=CognitiveLevel.LEVEL_2_HOLOGRAPHIC
+   )
+   ```
 
 ### 🎤 Voice Personas Quick Start (X3)
 
@@ -126,7 +185,8 @@ docker-compose up songbloom-gui
 
 ### 📚 Documentation
 
-- **[Next-Gen X3 Voice Personas Guide](SongBloom-master/NEXTGEN_X3_GUIDE.md)** - Voice cloning & personas (NEW!)
+- **[Cognitive Architecture Guide](COGNITIVE_ARCHITECTURE.md)** - Revolutionary Level 2 system (NEW!)
+- **[Next-Gen X3 Voice Personas Guide](SongBloom-master/NEXTGEN_X3_GUIDE.md)** - Voice cloning & personas
 - **[Next-Gen X2 Complete Guide](SongBloom-master/NEXTGEN_X2_GUIDE.md)** - Comprehensive documentation
 - **[Quick Start Tutorial](SongBloom-master/notebooks/quickstart_tutorial.ipynb)** - Jupyter notebook
 - **[Original README](SongBloom-master/README.md)** - Original SongBloom documentation
@@ -151,7 +211,17 @@ python test_installation.py
 
 ### 💡 What's New
 
-#### Next-Gen X3 (Latest!)
+#### Cognitive Architecture (Latest!)
+- 🧠 **Level 2: Holographic Computing** - Hyperdimensional vectors with concept algebra
+- 🔮 **Fractal Memory System** - Hierarchical compression (Day → Week → Month → Year)
+- 🎯 **Intelligent Model Selection** - Task-aware cognitive-level based selection
+- 🧮 **Concept Algebra** - Mathematical operations on abstract concepts
+- 💾 **Distributed Holographic Memory** - Robust to partial information loss
+- 🔬 **MusicDiffusionTransformer** - New Level 2 model architecture
+- 📊 **Model Registry** - Unified interface for all model architectures
+- 🚀 **Future-Ready** - Clear path to Level 3 (Active Inference) and Level 4 (Neuromorphic)
+
+#### Next-Gen X3
 - 🎤 **Voice Cloning & Personas** - Real voice embeddings, not just text descriptions
 - 💾 **Save/Load Models** - Each persona remembers preferences and characteristics
 - 🎯 **Quality Presets** - Ultra (100 steps), High (75), Balanced (50), Fast (30)
@@ -178,6 +248,8 @@ python test_installation.py
 - ✅ Multiple variation generation
 - ✅ Model export (TorchScript, ONNX, quantized)
 - ✅ Performance benchmarking suite
+- ✅ Hyperdimensional vector operations
+- ✅ Semantic memory queries
 
 #### Developer Experience
 - ✅ Docker containerization
@@ -185,6 +257,7 @@ python test_installation.py
 - ✅ Configuration management
 - ✅ Installation testing
 - ✅ Example notebooks
+- ✅ Cognitive architecture examples
 
 ### 📊 Performance Benchmarks
 
