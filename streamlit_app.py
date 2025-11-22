@@ -18,8 +18,10 @@ sys.path.insert(0, str(songbloom_dir))
 # Import SongBloom components
 try:
     from SongBloom.models.songbloom.songbloom_pl import SongBloom_Sampler
-except ImportError:
-    st.error("⚠️ SongBloom components not found. Please ensure the SongBloom-master directory is present.")
+    from SongBloom.models.model_selector import ModelSelector, ModelRegistry, ModelType, CognitiveLevel
+    from SongBloom.models.fractal_memory import FractalMemory
+except ImportError as e:
+    st.error(f"⚠️ SongBloom components not found: {e}. Please ensure the SongBloom-master directory is present.")
     st.stop()
 
 # Configure page
@@ -69,16 +71,38 @@ st.markdown("""
 # Header
 st.markdown("""
 <div class="main-header">
-    <h1>🎵 SongBloom Next-Gen X2</h1>
-    <p>AI-Powered Song Generation with Advanced Optimizations</p>
+    <h1>🎵 SongBloom Next-Gen X3 - Cognitive Architecture</h1>
+    <p>AI-Powered Song Generation with Revolutionary Cognitive Architecture</p>
 </div>
 """, unsafe_allow_html=True)
 
 
 @st.cache_resource
-def load_model(model_name="songbloom_full_150s", dtype="float32", quantization=None):
+def load_model(model_name="songbloom_full_150s", dtype="float32", quantization=None, model_architecture="songbloom_original"):
     """Load the SongBloom model with caching"""
     try:
+        # If using the new cognitive architecture models
+        if model_architecture == "diffusion_transformer":
+            selector = ModelSelector()
+            model = selector.load_model(
+                model_type=ModelType.DIFFUSION_TRANSFORMER.value,
+                config={
+                    'dim': 512,
+                    'num_layers': 6,
+                    'num_heads': 8,
+                    'mel_channels': 80
+                }
+            )
+            # Create a simple config object for compatibility
+            class SimpleConfig:
+                def __init__(self):
+                    self.max_dur = 150
+                    self.sample_rate = 32000
+            
+            cfg = SimpleConfig()
+            return model, cfg
+        
+        # Original SongBloom loading code
         # Change to SongBloom directory
         os.chdir(songbloom_dir)
         
@@ -173,10 +197,34 @@ def generate_music(model, config, lyrics, prompt_audio_path, cfg_coef=1.5, steps
 with st.sidebar:
     st.header("⚙️ Model Settings")
     
+    # Cognitive Architecture Level Selection
+    st.subheader("🧠 Cognitive Architecture")
+    cognitive_level = st.selectbox(
+        "Cognitive Level",
+        [
+            "Level 1: Foundation (Standard RAG)",
+            "Level 2: Holographic (Hyperdimensional)",
+            "Level 3: Active Inference (Coming Soon)",
+            "Level 4: Neuromorphic (Future)"
+        ],
+        help="Select the cognitive architecture level"
+    )
+    
+    # Model Architecture Selection
+    model_architecture = st.selectbox(
+        "Model Architecture",
+        ["songbloom_original", "diffusion_transformer"],
+        format_func=lambda x: {
+            "songbloom_original": "SongBloom Original (Level 1)",
+            "diffusion_transformer": "Diffusion Transformer (Level 2)"
+        }[x],
+        help="Select the model architecture"
+    )
+    
     model_name = st.selectbox(
-        "Model",
+        "Model Checkpoint",
         ["songbloom_full_150s"],
-        help="Select the SongBloom model to use"
+        help="Select the SongBloom model checkpoint to use"
     )
     
     dtype = st.selectbox(
@@ -194,23 +242,47 @@ with st.sidebar:
     
     if st.button("🔄 Load Model"):
         with st.spinner("Loading model... This may take a few minutes on first run."):
-            model, config = load_model(model_name, dtype, quantization)
+            model, config = load_model(model_name, dtype, quantization, model_architecture)
             if model is not None:
                 st.session_state['model'] = model
                 st.session_state['config'] = config
-                st.success("✅ Model loaded successfully!")
+                st.session_state['model_architecture'] = model_architecture
+                st.success(f"✅ Model loaded successfully! Architecture: {model_architecture}")
             else:
                 st.error("❌ Failed to load model")
     
     st.divider()
     
+    # Fractal Memory Section
+    st.header("🔮 Fractal Memory (Level 2)")
+    if st.checkbox("Enable Fractal Memory", help="Store and query music generations holographically"):
+        if 'fractal_memory' not in st.session_state:
+            st.session_state['fractal_memory'] = FractalMemory()
+        
+        memory_stats = st.session_state['fractal_memory'].get_statistics()
+        st.metric("Daily Memories", memory_stats['daily_memories'])
+        st.metric("Weekly Compressions", memory_stats['weekly_memories'])
+        
+        if st.button("Save Memory to Disk"):
+            st.session_state['fractal_memory'].save_to_disk()
+            st.success("💾 Memory saved!")
+    
+    st.divider()
+    
     st.header("📖 About")
     st.markdown("""
-    **SongBloom** is a state-of-the-art AI music generation system that creates 
-    full-length songs from lyrics and style prompts.
+    **SongBloom Next-Gen X3** implements revolutionary Cognitive Architecture:
+    
+    **Cognitive Levels:**
+    - 🔷 **Level 1**: Foundation - Standard RAG (Retrieval Augmented Generation)
+    - 🔶 **Level 2**: Holographic - Hyperdimensional Computing with concept algebra
+    - 🔷 **Level 3**: Active Inference - Predictive memory system (coming soon)
+    - 🔶 **Level 4**: Neuromorphic - Quantum & memristor computing (future)
     
     **Features:**
-    - 🎵 Full song generation
+    - 🎵 Full song generation with multiple architectures
+    - 🧠 Cognitive model selection
+    - 🔮 Fractal holographic memory
     - 🎨 Style transfer from audio
     - ⚡ Optimized inference
     - 🎯 High-quality output
@@ -303,6 +375,21 @@ with col2:
                     st.error(f"❌ {error}")
                 else:
                     st.success("✅ Music generated successfully!")
+                    
+                    # Store in fractal memory if enabled
+                    if 'fractal_memory' in st.session_state:
+                        memory_content = f"Lyrics: {lyrics[:200]}... | Style: {prompt_audio.name} | Steps: {steps}"
+                        st.session_state['fractal_memory'].store_daily_memory(
+                            datetime.now().strftime("%Y-%m-%d"),
+                            memory_content,
+                            metadata={
+                                'cfg_coef': cfg_coef,
+                                'steps': steps,
+                                'top_k': top_k,
+                                'model_architecture': st.session_state.get('model_architecture', 'unknown')
+                            }
+                        )
+                        st.info("💾 Saved to Fractal Memory!")
                     
                     # Display audio player
                     st.audio(output_path, format='audio/flac')
