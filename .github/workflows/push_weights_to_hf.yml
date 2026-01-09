@@ -1,0 +1,71 @@
+name: Push Model Weights to Hugging Face
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo_id:
+        description: 'Hugging Face repository ID'
+        required: true
+        default: 'MASSIVEMAGNETICS/SongBloom-weights'
+        type: string
+      weights_path:
+        description: 'Path to weights directory in repo'
+        required: true
+        default: 'weights_to_upload'
+        type: string
+      commit_message:
+        description: 'Commit message for the upload'
+        required: false
+        default: 'Upload model weights from CI'
+        type: string
+
+jobs:
+  upload-weights:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install huggingface-hub
+      
+      - name: Verify weights directory exists
+        run: |
+          if [ ! -d "${{ inputs.weights_path }}" ]; then
+            echo "❌ Error: Weights directory '${{ inputs.weights_path }}' not found"
+            echo "Please ensure the directory exists and contains model files"
+            exit 1
+          fi
+          
+          echo "✓ Weights directory found"
+          echo "Files to upload:"
+          find "${{ inputs.weights_path }}" -type f | head -20
+      
+      - name: Upload weights to Hugging Face
+        env:
+          HUGGING_FACE_HUB_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
+        run: |
+          cd SongBloom-master
+          python scripts/upload_weights.py \
+            --source-dir "../${{ inputs.weights_path }}" \
+            --repo-id "${{ inputs.repo_id }}" \
+            --commit-message "${{ inputs.commit_message }}" <<< "yes"
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "### ✅ Upload Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Model weights uploaded to: https://huggingface.co/${{ inputs.repo_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** \`${{ inputs.repo_id }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Path:** \`${{ inputs.weights_path }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit Message:** ${{ inputs.commit_message }}" >> $GITHUB_STEP_SUMMARY
