@@ -57,7 +57,8 @@ jobs:
           python scripts/upload_weights.py \
             --source-dir "../${{ inputs.weights_path }}" \
             --repo-id "${{ inputs.repo_id }}" \
-            --commit-message "${{ inputs.commit_message }}" <<< "yes"
+            --commit-message "${{ inputs.commit_message }}" \
+            --yes
       
       - name: Summary
         if: success()

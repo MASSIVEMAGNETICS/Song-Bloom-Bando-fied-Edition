@@ -17,7 +17,8 @@ def upload_weights(
     source_dir: str = "weights_to_upload",
     repo_id: str = "MASSIVEMAGNETICS/SongBloom-weights",
     token: Optional[str] = None,
-    commit_message: Optional[str] = None
+    commit_message: Optional[str] = None,
+    auto_confirm: bool = False
 ) -> int:
     """
     Upload model weights to Hugging Face Hub.
@@ -27,6 +28,7 @@ def upload_weights(
         repo_id: Hugging Face model repository ID
         token: HuggingFace token for authentication
         commit_message: Custom commit message
+        auto_confirm: Skip confirmation prompt if True
     
     Returns:
         0 on success, non-zero on error
@@ -96,14 +98,17 @@ def upload_weights(
     print()
     
     # Confirm upload
-    try:
-        response = input("Continue with upload? (yes/no): ")
-        if response.lower() not in ["yes", "y"]:
-            print("Upload cancelled.")
+    if not auto_confirm:
+        try:
+            response = input("Continue with upload? (yes/no): ")
+            if response.lower() not in ["yes", "y"]:
+                print("Upload cancelled.")
+                return 0
+        except (EOFError, KeyboardInterrupt):
+            print("\nUpload cancelled.")
             return 0
-    except (EOFError, KeyboardInterrupt):
-        print("\nUpload cancelled.")
-        return 0
+    else:
+        print("Auto-confirm enabled, proceeding with upload...")
     
     print()
     print("📤 Uploading files to Hugging Face Hub...")
@@ -116,14 +121,18 @@ def upload_weights(
         try:
             api.repo_info(repo_id=repo_id, token=token)
             print(f"✓ Repository {repo_id} exists")
-        except Exception:
+        except Exception as e:
             print(f"Creating repository {repo_id}...")
             try:
-                api.create_repo(repo_id=repo_id, token=token, repo_type="model", exist_ok=True)
+                api.create_repo(repo_id=repo_id, token=token, repo_type="model")
                 print(f"✓ Repository created")
-            except Exception as e:
-                print(f"❌ Failed to create repository: {e}")
-                return 1
+            except Exception as create_err:
+                # Check if error is because repo already exists
+                if "409" in str(create_err) or "already exists" in str(create_err).lower():
+                    print(f"✓ Repository exists")
+                else:
+                    print(f"❌ Failed to create repository: {create_err}")
+                    return 1
         
         print()
         
@@ -241,13 +250,20 @@ Note:
         help="Custom commit message for uploads"
     )
     
+    parser.add_argument(
+        "--yes",
+        action="store_true",
+        help="Skip confirmation prompt and proceed with upload"
+    )
+    
     args = parser.parse_args()
     
     return upload_weights(
         source_dir=args.source_dir,
         repo_id=args.repo_id,
         token=args.token,
-        commit_message=args.commit_message
+        commit_message=args.commit_message,
+        auto_confirm=args.yes
     )
 
 

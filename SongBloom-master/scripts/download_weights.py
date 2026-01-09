@@ -34,10 +34,11 @@ def verify_checksums(download_dir: Path, repo_id: str) -> bool:
         # Try to download checksums file
         checksums_path = None
         try:
+            cache_dir = download_dir / ".cache"
             checksums_path = hf_hub_download(
                 repo_id=repo_id,
                 filename="checksums.txt",
-                cache_dir=download_dir / ".cache"
+                cache_dir=str(cache_dir)
             )
         except Exception:
             # No checksums file, skip verification
