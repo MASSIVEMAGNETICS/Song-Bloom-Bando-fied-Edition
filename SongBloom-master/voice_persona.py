@@ -582,7 +582,7 @@ class PersonaManager:
                     'quality_preset': data['quality_preset']
                 })
             except Exception as e:
-                print(f"⚠️ Error reading {config_file}: {e}")
+                logger.warning(f"⚠️ Error reading {config_file}: {e}")
         
         return sorted(personas, key=lambda x: x['created_at'], reverse=True)
     
@@ -601,14 +601,14 @@ class PersonaManager:
             
             if config_path.exists():
                 config_path.unlink()
-                print(f"✓ Deleted persona {persona_id}")
+                logger.info(f"✓ Deleted persona {persona_id}")
                 return True
             else:
-                print(f"⚠️ Persona {persona_id} not found")
+                logger.warning(f"⚠️ Persona {persona_id} not found")
                 return False
         
         except Exception as e:
-            print(f"⚠️ Error deleting persona: {e}")
+            logger.error(f"⚠️ Error deleting persona: {e}", exc_info=True)
             return False
     
     def export_persona(self, persona_id: str, export_path: str) -> bool:
@@ -630,11 +630,11 @@ class PersonaManager:
             with open(export_path, 'w') as f:
                 json.dump(persona.to_dict(), f, indent=2)
             
-            print(f"✓ Exported persona to {export_path}")
+            logger.info(f"✓ Exported persona to {export_path}")
             return True
         
         except Exception as e:
-            print(f"⚠️ Error exporting persona: {e}")
+            logger.error(f"⚠️ Error exporting persona: {e}", exc_info=True)
             return False
     
     def import_persona(self, import_path: str) -> Optional[VoicePersona]:
@@ -654,11 +654,11 @@ class PersonaManager:
             persona = VoicePersona.from_dict(data)
             self.save_persona(persona)
             
-            print(f"✓ Imported persona '{persona.name}'")
+            logger.info(f"✓ Imported persona '{persona.name}'")
             return persona
         
         except Exception as e:
-            print(f"⚠️ Error importing persona: {e}")
+            logger.error(f"⚠️ Error importing persona: {e}", exc_info=True)
             return None
 
 
