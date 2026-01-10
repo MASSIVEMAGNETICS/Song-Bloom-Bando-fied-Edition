@@ -1,0 +1,64 @@
+# Multi-stage Dockerfile for SongBloom Web Application
+# Optimized for production deployment
+
+# Stage 1: Base image with system dependencies
+FROM python:3.10-slim as base
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    build-essential \
+    libsndfile1 \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Stage 2: Dependencies
+FROM base as dependencies
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 3: Application
+FROM base as application
+
+# Copy installed dependencies from previous stage
+COPY --from=dependencies /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=dependencies /usr/local/bin /usr/local/bin
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/cache /app/personas /app/models
+
+# Add labels
+LABEL maintainer="SongBloom Team <info@songbloom.ai>" \
+      version="3.0.0" \
+      description="SongBloom Enterprise Web Application"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+
+# Expose port
+EXPOSE 8501
+
+# Set user for security (non-root)
+RUN useradd -m -u 1000 songbloom && \
+    chown -R songbloom:songbloom /app
+USER songbloom
+
+# Run Streamlit
+CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]

@@ -1,23 +1,189 @@
 """
 SongBloom Voice Cloning & Persona Management System
 Next-Gen X3: Voice cloning, persona save/load, and advanced customization
+Enterprise-Grade Features: Model registry, caching, quality metrics, robust error handling
 """
 import os
 import json
 import torch
 import torchaudio
 from pathlib import Path
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Tuple
 import hashlib
 from datetime import datetime
 import numpy as np
+import logging
+from functools import lru_cache
+import warnings
+
+# Configure logging for enterprise deployment
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 try:
     from speechbrain.pretrained import EncoderClassifier
     VOICE_CLONE_AVAILABLE = True
 except ImportError:
     VOICE_CLONE_AVAILABLE = False
-    print("⚠️ Voice cloning requires speechbrain. Install with: pip install speechbrain")
+    logger.warning("⚠️ Voice cloning requires speechbrain. Install with: pip install speechbrain")
+
+
+class VoiceModelRegistry:
+    """
+    Registry for managing multiple voice models with dynamic loading capability
+    Supports on-device and server-based model loading
+    """
+    _instance = None
+    _models = {}
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(VoiceModelRegistry, cls).__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        if not hasattr(self, 'initialized'):
+            self.initialized = True
+            self.model_configs = {
+                'ecapa_voxceleb': {
+                    'source': 'speechbrain/spkrec-ecapa-voxceleb',
+                    'type': 'speaker_recognition',
+                    'embedding_dim': 192,
+                    'sample_rate': 16000
+                },
+                'xvector': {
+                    'source': 'speechbrain/spkrec-xvect-voxceleb',
+                    'type': 'speaker_recognition', 
+                    'embedding_dim': 512,
+                    'sample_rate': 16000
+                },
+                'wavlm_base': {
+                    'source': 'microsoft/wavlm-base-plus',
+                    'type': 'speech_representation',
+                    'embedding_dim': 768,
+                    'sample_rate': 16000
+                }
+            }
+            logger.info(f"Initialized VoiceModelRegistry with {len(self.model_configs)} model configurations")
+    
+    def get_model(self, model_name: str = 'ecapa_voxceleb') -> Optional[Any]:
+        """
+        Get or load a voice model with caching
+        
+        Args:
+            model_name: Name of the model configuration
+            
+        Returns:
+            Loaded model or None
+        """
+        if model_name in self._models:
+            logger.debug(f"Using cached model: {model_name}")
+            return self._models[model_name]
+        
+        if model_name not in self.model_configs:
+            logger.error(f"Unknown model: {model_name}. Available: {list(self.model_configs.keys())}")
+            return None
+        
+        try:
+            config = self.model_configs[model_name]
+            logger.info(f"Loading voice model: {model_name} from {config['source']}")
+            
+            if config['type'] == 'speaker_recognition' and VOICE_CLONE_AVAILABLE:
+                model = EncoderClassifier.from_hparams(
+                    source=config['source'],
+                    savedir=f"voice_clone_models/{model_name}"
+                )
+                self._models[model_name] = model
+                logger.info(f"✓ Successfully loaded {model_name}")
+                return model
+            else:
+                logger.warning(f"Model type {config['type']} not yet supported or dependencies missing")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to load model {model_name}: {e}", exc_info=True)
+            return None
+    
+    def list_available_models(self) -> List[str]:
+        """List all available model configurations"""
+        return list(self.model_configs.keys())
+    
+    def get_model_info(self, model_name: str) -> Optional[Dict]:
+        """Get information about a model"""
+        return self.model_configs.get(model_name)
+
+
+class VoiceQualityMetrics:
+    """
+    Quality metrics and validation for voice embeddings
+    """
+    
+    @staticmethod
+    def calculate_snr(audio_signal: torch.Tensor) -> float:
+        """
+        Calculate Signal-to-Noise Ratio
+        
+        Args:
+            audio_signal: Audio tensor
+            
+        Returns:
+            SNR in dB
+        """
+        try:
+            signal_power = torch.mean(audio_signal ** 2)
+            # Simple noise estimation using high-frequency components
+            noise_estimate = torch.std(torch.diff(audio_signal))
+            noise_power = noise_estimate ** 2
+            
+            if noise_power == 0:
+                return float('inf')
+            
+            snr = 10 * torch.log10(signal_power / noise_power)
+            return float(snr)
+        except Exception as e:
+            logger.warning(f"Could not calculate SNR: {e}")
+            return 0.0
+    
+    @staticmethod
+    def validate_audio_quality(audio_path: str, min_duration: float = 3.0, 
+                               max_duration: float = 60.0) -> Tuple[bool, str]:
+        """
+        Validate audio file quality for voice cloning
+        
+        Args:
+            audio_path: Path to audio file
+            min_duration: Minimum duration in seconds
+            max_duration: Maximum duration in seconds
+            
+        Returns:
+            Tuple of (is_valid, message)
+        """
+        try:
+            signal, sr = torchaudio.load(audio_path)
+            duration = signal.shape[1] / sr
+            
+            # Check duration
+            if duration < min_duration:
+                return False, f"Audio too short: {duration:.1f}s (minimum: {min_duration}s)"
+            if duration > max_duration:
+                return False, f"Audio too long: {duration:.1f}s (maximum: {max_duration}s)"
+            
+            # Check SNR
+            snr = VoiceQualityMetrics.calculate_snr(signal)
+            if snr < 10.0:
+                return False, f"Audio quality too low (SNR: {snr:.1f}dB, minimum: 10dB)"
+            
+            # Check if audio is not silent
+            if torch.max(torch.abs(signal)) < 0.01:
+                return False, "Audio appears to be silent or too quiet"
+            
+            return True, f"Audio valid: {duration:.1f}s, SNR: {snr:.1f}dB"
+            
+        except Exception as e:
+            return False, f"Error validating audio: {e}"
 
 
 class VoicePersona:
@@ -65,6 +231,29 @@ class VoicePersona:
         hash_input = f"{self.name}_{timestamp}".encode()
         return hashlib.sha256(hash_input).hexdigest()[:16]
     
+    def validate(self) -> Tuple[bool, List[str]]:
+        """
+        Validate persona data integrity
+        
+        Returns:
+            Tuple of (is_valid, list of issues)
+        """
+        issues = []
+        
+        if not self.name or not self.name.strip():
+            issues.append("Persona name is empty")
+        
+        if self.voice_embedding is not None:
+            if not isinstance(self.voice_embedding, (np.ndarray, list)):
+                issues.append("Invalid voice embedding type")
+            elif len(np.array(self.voice_embedding).shape) != 1:
+                issues.append("Voice embedding must be 1-dimensional")
+        
+        if not self.quality_preset in ['ultra', 'high', 'balanced', 'fast']:
+            issues.append(f"Invalid quality preset: {self.quality_preset}")
+        
+        return len(issues) == 0, issues
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert persona to dictionary"""
         return {
@@ -104,38 +293,82 @@ class VoicePersona:
 class VoiceCloner:
     """
     Advanced voice cloning system for creating personalized voice models
+    Enterprise features: Multiple model support, caching, quality validation
     """
-    def __init__(self, model_name: str = "speechbrain/spkrec-ecapa-voxceleb"):
+    def __init__(self, model_name: str = "ecapa_voxceleb"):
         self.model_name = model_name
         self.encoder = None
+        self.registry = VoiceModelRegistry()
+        self._embedding_cache = {}
         
         if VOICE_CLONE_AVAILABLE:
             try:
-                self.encoder = EncoderClassifier.from_hparams(
-                    source=model_name,
-                    savedir="voice_clone_models"
-                )
-                print("✓ Voice cloning model loaded")
+                self.encoder = self.registry.get_model(model_name)
+                if self.encoder:
+                    logger.info(f"✓ Voice cloning model '{model_name}' loaded")
+                else:
+                    logger.warning(f"Could not load model '{model_name}'")
             except Exception as e:
-                print(f"⚠️ Could not load voice cloning model: {e}")
+                logger.error(f"⚠️ Could not initialize voice cloning: {e}", exc_info=True)
     
-    def extract_voice_embedding(self, audio_path: str) -> Optional[np.ndarray]:
+    @lru_cache(maxsize=128)
+    def _get_cached_embedding(self, audio_path: str) -> Optional[tuple]:
         """
-        Extract voice embedding from audio file
+        Get cached voice embedding (returns tuple for hashability)
         
         Args:
             audio_path: Path to audio file
             
         Returns:
+            Embedding as tuple or None
+        """
+        # This is a wrapper for LRU cache which requires hashable inputs
+        embedding = self.extract_voice_embedding(audio_path, use_cache=False)
+        if embedding is not None:
+            return tuple(embedding.tolist())
+        return None
+    
+    def extract_voice_embedding(self, audio_path: str, 
+                               use_cache: bool = True,
+                               validate_quality: bool = True) -> Optional[np.ndarray]:
+        """
+        Extract voice embedding from audio file with quality validation
+        
+        Args:
+            audio_path: Path to audio file
+            use_cache: Whether to use cached embeddings
+            validate_quality: Whether to validate audio quality
+            
+        Returns:
             Voice embedding vector
         """
-        if self.encoder is None:
-            print("⚠️ Voice cloning not available")
+        if not os.path.exists(audio_path):
+            logger.error(f"Audio file not found: {audio_path}")
             return None
+        
+        # Use cache if enabled
+        if use_cache and audio_path in self._embedding_cache:
+            logger.debug(f"Using cached embedding for {audio_path}")
+            return self._embedding_cache[audio_path]
+        
+        if self.encoder is None:
+            logger.warning("⚠️ Voice cloning not available - encoder not loaded")
+            return None
+        
+        # Validate audio quality
+        if validate_quality:
+            is_valid, msg = VoiceQualityMetrics.validate_audio_quality(audio_path)
+            if not is_valid:
+                logger.warning(f"Audio quality issue: {msg}")
+                # Continue anyway but log the warning
         
         try:
             # Load audio
             signal, sr = torchaudio.load(audio_path)
+            
+            # Convert to mono if stereo
+            if signal.shape[0] > 1:
+                signal = torch.mean(signal, dim=0, keepdim=True)
             
             # Resample if needed
             if sr != 16000:
@@ -146,10 +379,17 @@ class VoiceCloner:
             with torch.no_grad():
                 embedding = self.encoder.encode_batch(signal)
             
-            return embedding.squeeze().cpu().numpy()
+            result = embedding.squeeze().cpu().numpy()
+            
+            # Cache the result
+            if use_cache:
+                self._embedding_cache[audio_path] = result
+            
+            logger.info(f"✓ Extracted voice embedding from {os.path.basename(audio_path)}")
+            return result
         
         except Exception as e:
-            print(f"⚠️ Error extracting voice embedding: {e}")
+            logger.error(f"⚠️ Error extracting voice embedding from {audio_path}: {e}", exc_info=True)
             return None
     
     def compute_voice_similarity(self, embedding1: np.ndarray, embedding2: np.ndarray) -> float:
@@ -173,36 +413,52 @@ class VoiceCloner:
         self,
         name: str,
         audio_samples: List[str],
-        description: str = ""
+        description: str = "",
+        validate_quality: bool = True
     ) -> VoicePersona:
         """
-        Create a voice persona from multiple audio samples
+        Create a voice persona from multiple audio samples with validation
         
         Args:
             name: Persona name
             audio_samples: List of audio file paths
             description: Persona description
+            validate_quality: Whether to validate audio quality
             
         Returns:
             Voice persona
         """
+        logger.info(f"Creating voice persona '{name}' from {len(audio_samples)} samples")
         persona = VoicePersona(name)
         persona.metadata['description'] = description
         
         # Extract embeddings from all samples
         embeddings = []
+        valid_samples = []
+        
         for sample_path in audio_samples:
-            embedding = self.extract_voice_embedding(sample_path)
-            if embedding is not None:
-                embeddings.append(embedding)
-                persona.voice_samples.append(sample_path)
+            try:
+                embedding = self.extract_voice_embedding(
+                    sample_path, 
+                    validate_quality=validate_quality
+                )
+                if embedding is not None:
+                    embeddings.append(embedding)
+                    valid_samples.append(sample_path)
+                    persona.voice_samples.append(sample_path)
+            except Exception as e:
+                logger.warning(f"Failed to process sample {sample_path}: {e}")
         
         if embeddings:
-            # Average embeddings
+            # Average embeddings for robustness
             persona.voice_embedding = np.mean(embeddings, axis=0)
-            print(f"✓ Created voice persona '{name}' from {len(embeddings)} samples")
+            logger.info(f"✓ Created voice persona '{name}' from {len(embeddings)} valid samples")
+            
+            # Store quality metrics
+            persona.metadata['embedding_samples_count'] = len(embeddings)
+            persona.metadata['embedding_dim'] = len(persona.voice_embedding)
         else:
-            print(f"⚠️ Could not extract voice embeddings")
+            logger.warning(f"⚠️ Could not extract any valid voice embeddings for persona '{name}'")
         
         return persona
 
@@ -210,6 +466,7 @@ class VoiceCloner:
 class PersonaManager:
     """
     Manage voice personas - save, load, organize
+    Enterprise features: Atomic operations, backup, validation
     """
     def __init__(self, personas_dir: str = "./personas"):
         self.personas_dir = Path(personas_dir)
@@ -219,33 +476,55 @@ class PersonaManager:
         (self.personas_dir / "configs").mkdir(exist_ok=True)
         (self.personas_dir / "voice_samples").mkdir(exist_ok=True)
         (self.personas_dir / "style_prompts").mkdir(exist_ok=True)
+        (self.personas_dir / "backups").mkdir(exist_ok=True)
+        
+        logger.info(f"PersonaManager initialized with directory: {self.personas_dir}")
     
-    def save_persona(self, persona: VoicePersona) -> bool:
+    def save_persona(self, persona: VoicePersona, create_backup: bool = True) -> bool:
         """
-        Save persona to disk
+        Save persona to disk with validation and optional backup
         
         Args:
             persona: Voice persona to save
+            create_backup: Whether to create backup of existing persona
             
         Returns:
             Success status
         """
+        # Validate persona before saving
+        is_valid, issues = persona.validate()
+        if not is_valid:
+            logger.error(f"Cannot save invalid persona: {', '.join(issues)}")
+            return False
+        
         try:
             config_path = self.personas_dir / "configs" / f"{persona.persona_id}.json"
             
-            with open(config_path, 'w') as f:
+            # Create backup if file exists
+            if create_backup and config_path.exists():
+                backup_path = self.personas_dir / "backups" / f"{persona.persona_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                import shutil
+                shutil.copy2(config_path, backup_path)
+                logger.debug(f"Created backup at {backup_path}")
+            
+            # Write to temporary file first (atomic operation)
+            temp_path = config_path.with_suffix('.tmp')
+            with open(temp_path, 'w') as f:
                 json.dump(persona.to_dict(), f, indent=2)
             
-            print(f"✓ Saved persona '{persona.name}' to {config_path}")
+            # Atomic rename
+            temp_path.replace(config_path)
+            
+            logger.info(f"✓ Saved persona '{persona.name}' (ID: {persona.persona_id})")
             return True
         
         except Exception as e:
-            print(f"⚠️ Error saving persona: {e}")
+            logger.error(f"⚠️ Error saving persona: {e}", exc_info=True)
             return False
     
     def load_persona(self, persona_id: str) -> Optional[VoicePersona]:
         """
-        Load persona from disk
+        Load persona from disk with validation
         
         Args:
             persona_id: Persona ID
@@ -257,18 +536,27 @@ class PersonaManager:
             config_path = self.personas_dir / "configs" / f"{persona_id}.json"
             
             if not config_path.exists():
-                print(f"⚠️ Persona {persona_id} not found")
+                logger.warning(f"⚠️ Persona {persona_id} not found")
                 return None
             
             with open(config_path, 'r') as f:
                 data = json.load(f)
             
             persona = VoicePersona.from_dict(data)
-            print(f"✓ Loaded persona '{persona.name}'")
+            
+            # Validate loaded persona
+            is_valid, issues = persona.validate()
+            if not is_valid:
+                logger.warning(f"Loaded persona has validation issues: {', '.join(issues)}")
+            
+            logger.info(f"✓ Loaded persona '{persona.name}' (ID: {persona_id})")
             return persona
         
+        except json.JSONDecodeError as e:
+            logger.error(f"⚠️ Invalid JSON in persona file {persona_id}: {e}")
+            return None
         except Exception as e:
-            print(f"⚠️ Error loading persona: {e}")
+            logger.error(f"⚠️ Error loading persona: {e}", exc_info=True)
             return None
     
     def list_personas(self) -> List[Dict[str, Any]]:
@@ -294,7 +582,7 @@ class PersonaManager:
                     'quality_preset': data['quality_preset']
                 })
             except Exception as e:
-                print(f"⚠️ Error reading {config_file}: {e}")
+                logger.warning(f"⚠️ Error reading {config_file}: {e}")
         
         return sorted(personas, key=lambda x: x['created_at'], reverse=True)
     
@@ -313,14 +601,14 @@ class PersonaManager:
             
             if config_path.exists():
                 config_path.unlink()
-                print(f"✓ Deleted persona {persona_id}")
+                logger.info(f"✓ Deleted persona {persona_id}")
                 return True
             else:
-                print(f"⚠️ Persona {persona_id} not found")
+                logger.warning(f"⚠️ Persona {persona_id} not found")
                 return False
         
         except Exception as e:
-            print(f"⚠️ Error deleting persona: {e}")
+            logger.error(f"⚠️ Error deleting persona: {e}", exc_info=True)
             return False
     
     def export_persona(self, persona_id: str, export_path: str) -> bool:
@@ -342,11 +630,11 @@ class PersonaManager:
             with open(export_path, 'w') as f:
                 json.dump(persona.to_dict(), f, indent=2)
             
-            print(f"✓ Exported persona to {export_path}")
+            logger.info(f"✓ Exported persona to {export_path}")
             return True
         
         except Exception as e:
-            print(f"⚠️ Error exporting persona: {e}")
+            logger.error(f"⚠️ Error exporting persona: {e}", exc_info=True)
             return False
     
     def import_persona(self, import_path: str) -> Optional[VoicePersona]:
@@ -366,11 +654,11 @@ class PersonaManager:
             persona = VoicePersona.from_dict(data)
             self.save_persona(persona)
             
-            print(f"✓ Imported persona '{persona.name}'")
+            logger.info(f"✓ Imported persona '{persona.name}'")
             return persona
         
         except Exception as e:
-            print(f"⚠️ Error importing persona: {e}")
+            logger.error(f"⚠️ Error importing persona: {e}", exc_info=True)
             return None
 
 

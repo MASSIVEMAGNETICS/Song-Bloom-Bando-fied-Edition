@@ -1,0 +1,97 @@
+name: Voice Cloning Tests
+
+on:
+  push:
+    branches: [ main, develop, copilot/** ]
+    paths:
+      - 'SongBloom-master/voice_persona.py'
+      - 'SongBloom-master/test_voice_persona.py'
+      - '.github/workflows/voice-tests.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'SongBloom-master/voice_persona.py'
+      - 'SongBloom-master/test_voice_persona.py'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsndfile1 ffmpeg
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+        pip install numpy pytest pytest-cov
+    
+    - name: Run voice persona tests
+      working-directory: SongBloom-master
+      run: |
+        python -m pytest test_voice_persona.py -v --cov=voice_persona --cov-report=xml --cov-report=term
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./SongBloom-master/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black mypy
+    
+    - name: Run flake8
+      working-directory: SongBloom-master
+      run: |
+        flake8 voice_persona.py --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 voice_persona.py --count --max-complexity=15 --max-line-length=120 --statistics
+    
+    - name: Check code formatting with black
+      working-directory: SongBloom-master
+      run: |
+        black --check voice_persona.py || echo "::warning::Code formatting issues found. Run 'black voice_persona.py' to fix."
