@@ -13,9 +13,14 @@ on:
       - 'SongBloom-master/voice_persona.py'
       - 'SongBloom-master/test_voice_persona.py'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10']
@@ -63,6 +68,8 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
