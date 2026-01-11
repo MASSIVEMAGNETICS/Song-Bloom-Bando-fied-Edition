@@ -45,6 +45,10 @@ streamlit_outputs/
 *.mp3
 *.ogg
 
+# Model weights staging directory
+weights_to_upload/
+models/songbloom/
+
 # Temporary files
 tmp/
 temp/

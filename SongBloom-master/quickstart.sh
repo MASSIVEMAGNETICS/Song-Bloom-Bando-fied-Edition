@@ -67,6 +67,48 @@ pip install -r requirements.txt
 
 print_success "Installation complete!"
 
+# Check for model weights and download if missing
+print_status "Checking for model weights..."
+if [ ! -d "models/songbloom" ] || [ -z "$(ls -A models/songbloom 2>/dev/null)" ]; then
+    print_warning "Model weights not found in models/songbloom"
+    echo ""
+    echo "Would you like to download model weights from Hugging Face? (yes/no)"
+    read -p "Choice: " download_choice
+    
+    if [ "$download_choice" = "yes" ] || [ "$download_choice" = "y" ]; then
+        print_status "Downloading model weights..."
+        if python scripts/download_weights.py; then
+            print_success "Model weights downloaded successfully!"
+        else
+            print_warning "Failed to download model weights"
+            echo ""
+            echo "💡 To download weights manually:"
+            echo "   1. For public repos:"
+            echo "      python scripts/download_weights.py"
+            echo ""
+            echo "   2. For private repos, set your Hugging Face token first:"
+            echo "      export HUGGING_FACE_HUB_TOKEN=your_token_here"
+            echo "      python scripts/download_weights.py"
+            echo ""
+            echo "   3. See WEIGHTS.md for more information"
+            echo ""
+            read -p "Press Enter to continue..."
+        fi
+    else
+        print_warning "Skipping model weight download"
+        echo ""
+        echo "💡 You can download weights later with:"
+        echo "   python scripts/download_weights.py"
+        echo ""
+        echo "   For private repos:"
+        echo "   export HUGGING_FACE_HUB_TOKEN=your_token_here"
+        echo "   python scripts/download_weights.py"
+        echo ""
+    fi
+else
+    print_success "Model weights found!"
+fi
+
 echo ""
 echo "======================================"
 echo "🚀 Choose how to run SongBloom:"
