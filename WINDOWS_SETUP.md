@@ -243,6 +243,8 @@ python test_installation.py
 cd ..
 ```
 
+*Note: `test_installation.py` is located in the `SongBloom-master` directory.*
+
 ---
 
 ## GPU Setup (Optional but Recommended)
@@ -667,7 +669,7 @@ Before generating music, ensure:
 - [ ] Git is installed
 - [ ] Repository is cloned
 - [ ] Virtual environment is created and activated
-- [ ] All dependencies are installed (run `test_installation.py`)
+- [ ] All dependencies are installed (run `SongBloom-master\test_installation.py`)
 - [ ] GPU is detected (if using CUDA)
 - [ ] Application launches without errors
 - [ ] Model is downloaded (first run only)
