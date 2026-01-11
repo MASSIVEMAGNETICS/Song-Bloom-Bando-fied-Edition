@@ -52,9 +52,9 @@ This repository features the **revolutionary Next-Gen X3 upgrade** with Cognitiv
 
 ### 🎯 Quick Start
 
-**🪟 Windows Users: [Complete Windows 10/11 Setup Guide](WINDOWS_SETUP.md)**
-- Step-by-step installation for Windows 10 and Windows 11
-- Prerequisites, GPU setup, troubleshooting, and more!
+**🪟 Windows Users:**
+- [**5-Minute Quick Start**](WINDOWS_QUICK_START.md) - Get running fast!
+- [Complete Windows 10/11 Setup Guide](WINDOWS_SETUP.md) - Detailed installation & troubleshooting
 
 **🚀 ONE-CLICK LAUNCHER (NEW - Easiest Way!)**
 ```bash
@@ -193,7 +193,8 @@ docker-compose up songbloom-gui
 
 ### 📚 Documentation
 
-- **[Windows 10/11 Setup Guide](WINDOWS_SETUP.md)** - Complete end-to-end Windows installation (NEW!)
+- **[Windows Quick Start](WINDOWS_QUICK_START.md)** - Get running on Windows in 5 minutes! (NEW!)
+- **[Windows 10/11 Complete Setup](WINDOWS_SETUP.md)** - Full installation & troubleshooting guide (NEW!)
 - **[Enterprise Deployment Guide](ENTERPRISE_DEPLOYMENT.md)** - Production deployment for iOS/Android/Web (NEW!)
 - **[Mobile Deployment Guide](MOBILE_DEPLOYMENT.md)** - iOS and Android app deployment (NEW!)
 - **[Deployment Configuration](deployment_config.yaml)** - Multi-platform deployment config (NEW!)
