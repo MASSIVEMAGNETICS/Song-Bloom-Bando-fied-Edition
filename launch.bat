@@ -7,14 +7,6 @@ setlocal enabledelayedexpansion
 
 title SongBloom One-Click Launcher
 
-REM Check for administrator privileges (optional, for better error messages)
-net session >nul 2>&1
-if %errorLevel% == 0 (
-    set IS_ADMIN=1
-) else (
-    set IS_ADMIN=0
-)
-
 :banner
 cls
 echo.
