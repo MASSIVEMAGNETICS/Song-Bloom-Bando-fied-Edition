@@ -229,7 +229,6 @@ if "%dep_choice%"=="1" (
         exit /b 1
     )
     cd ..
-    pip install streamlit>=1.28.0
 ) else (
     echo Installing all requirements...
     pip install --upgrade pip
@@ -358,19 +357,19 @@ echo ⚠️  Press Ctrl+C to stop the application
 echo ⚠️  First run will download model (~2-5GB, 5-15 minutes)
 echo.
 
-REM Try to activate environment
-if exist "venv\Scripts\activate.bat" (
-    call venv\Scripts\activate.bat
-    echo ✓ Virtual environment activated
-)
-call conda activate songbloom 2>nul
-
 if not exist "SongBloom-master\app.py" (
     echo ❌ ERROR: SongBloom-master\app.py not found!
     echo Please ensure the repository is cloned correctly.
     pause
     goto :main_menu
 )
+
+REM Try to activate environment
+if exist "venv\Scripts\activate.bat" (
+    call venv\Scripts\activate.bat
+    echo ✓ Virtual environment activated
+)
+call conda activate songbloom 2>nul
 
 cd SongBloom-master
 echo Starting Gradio...
@@ -409,19 +408,19 @@ echo ⚠️  Press Ctrl+C to stop the application
 echo ⚠️  First run will download model (~2-5GB, 5-15 minutes)
 echo.
 
-REM Try to activate environment
-if exist "venv\Scripts\activate.bat" (
-    call venv\Scripts\activate.bat
-    echo ✓ Virtual environment activated
-)
-call conda activate songbloom 2>nul
-
 if not exist "SongBloom-master\app_nextgen_x3.py" (
     echo ❌ ERROR: SongBloom-master\app_nextgen_x3.py not found!
     echo Please ensure the repository is cloned correctly.
     pause
     goto :main_menu
 )
+
+REM Try to activate environment
+if exist "venv\Scripts\activate.bat" (
+    call venv\Scripts\activate.bat
+    echo ✓ Virtual environment activated
+)
+call conda activate songbloom 2>nul
 
 cd SongBloom-master
 echo Starting Next-Gen X3...
