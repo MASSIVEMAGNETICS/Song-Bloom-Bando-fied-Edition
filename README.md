@@ -52,6 +52,10 @@ This repository features the **revolutionary Next-Gen X3 upgrade** with Cognitiv
 
 ### 🎯 Quick Start
 
+**🪟 Windows Users:**
+- [**5-Minute Quick Start**](WINDOWS_QUICK_START.md) - Get running fast!
+- [Complete Windows 10/11 Setup Guide](WINDOWS_SETUP.md) - Detailed installation & troubleshooting
+
 **🚀 ONE-CLICK LAUNCHER (NEW - Easiest Way!)**
 ```bash
 # Linux/Mac
@@ -189,6 +193,8 @@ docker-compose up songbloom-gui
 
 ### 📚 Documentation
 
+- **[Windows Quick Start](WINDOWS_QUICK_START.md)** - Get running on Windows in 5 minutes! (NEW!)
+- **[Windows 10/11 Complete Setup](WINDOWS_SETUP.md)** - Full installation & troubleshooting guide (NEW!)
 - **[Enterprise Deployment Guide](ENTERPRISE_DEPLOYMENT.md)** - Production deployment for iOS/Android/Web (NEW!)
 - **[Mobile Deployment Guide](MOBILE_DEPLOYMENT.md)** - iOS and Android app deployment (NEW!)
 - **[Deployment Configuration](deployment_config.yaml)** - Multi-platform deployment config (NEW!)
@@ -200,10 +206,21 @@ docker-compose up songbloom-gui
 
 ### 🛠️ Installation
 
+**🪟 Windows Users:** See the [Complete Windows 10/11 Setup Guide](WINDOWS_SETUP.md) for detailed instructions.
+
+**Quick Install (Linux/Mac/Windows):**
+
 ```bash
 # Clone repository
 git clone https://github.com/MASSIVEMAGNETICS/Song-Bloom-Bando-fied-Edition
-cd Song-Bloom-Bando-fied-Edition/SongBloom-master
+cd Song-Bloom-Bando-fied-Edition
+
+# Use the one-click launcher (recommended)
+./launch.sh    # Linux/Mac
+launch.bat     # Windows
+
+# Or manual installation:
+cd SongBloom-master
 
 # Create conda environment
 conda create -n SongBloom python=3.8.12
